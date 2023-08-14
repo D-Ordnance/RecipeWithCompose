@@ -1,12 +1,13 @@
 package com.deeosoft.recipewithcompose.feature.register.domain.usecase
 
+import com.deeosoft.recipewithcompose.core.failure.ServerFailure
 import com.deeosoft.recipewithcompose.core.response.BaseRemoteResponse
 import com.deeosoft.recipewithcompose.feature.register.domain.entity.RegisterUserEntity
 import com.deeosoft.recipewithcompose.feature.register.domain.repository.RegisterUserRepository
 import com.deeosoft.recipewithcompose.feature.register.domain.repository.RegisterUserRequestModel
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -17,6 +18,8 @@ internal class RegisterUserWithEmailTest {
     private lateinit var useCase: RegisterUserWithEmail
     private lateinit var userModel: RegisterUserRequestModel
     private lateinit var response: RegisterUserEntity
+    private val errorMessage = "An error occurred"
+    private val serverFailure = ServerFailure(errorMessage)
 
     @BeforeEach
     fun setUp() {
@@ -34,11 +37,30 @@ internal class RegisterUserWithEmailTest {
     @Test
     fun should_return_RegisterUserEntity() = runBlocking {
         //Arrange
-        `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer { BaseRemoteResponse.Success(response) }
+        `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer {
+            BaseRemoteResponse.Success(
+                response
+            )
+        }
         //Act
         val actual = useCase.execute(params = userModel)
         //Assert
         verify(mockRegisterUserRepository).registerUserWithEmail(userModel)
-        assertEquals(actual, BaseRemoteResponse.Success(response))
+        assertEquals(actual.data, response)
+    }
+
+    @DisplayName("should return a [Failure] when register with email use case is called")
+    @Test
+    fun should_return_Failure() = runBlocking {
+        //Arrange
+        `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer {
+            BaseRemoteResponse.Error<RegisterUserEntity>(failure = serverFailure)
+        }
+        //Act
+        val actual = useCase.execute(params = userModel)
+        //Assert
+        verify(mockRegisterUserRepository).registerUserWithEmail(userModel)
+        assertEquals(actual.failure?.message, errorMessage)
+        assertTrue(actual is BaseRemoteResponse.Error)
     }
 }
