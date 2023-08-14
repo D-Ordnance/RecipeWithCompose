@@ -5,8 +5,8 @@ import com.deeosoft.recipewithcompose.feature.register.domain.entity.RegisterUse
 
 interface RegisterUserRepository {
     suspend fun registerUserWithEmail(model: RegisterUserRequestModel?): BaseRemoteResponse<RegisterUserEntity>
-    fun registerUserWithGoogle()
-    fun registerUserWithFacebook()
+    suspend fun registerUserWithGoogle(): BaseRemoteResponse<RegisterUserEntity>
+    suspend fun registerUserWithFacebook(): BaseRemoteResponse<RegisterUserEntity>
 }
 
 data class RegisterUserRequestModel(
