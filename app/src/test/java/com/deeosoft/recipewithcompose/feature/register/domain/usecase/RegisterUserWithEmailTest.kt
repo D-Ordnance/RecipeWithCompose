@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.*
 
 internal class RegisterUserWithEmailTest {
@@ -53,9 +52,7 @@ internal class RegisterUserWithEmailTest {
 
     private fun testUseCases(remoteResponse: BaseRemoteResponse<RegisterUserEntity>, assertions: (BaseRemoteResponse<RegisterUserEntity>) -> Unit) = runBlocking {
         //Arrange
-        `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer {
-            remoteResponse
-        }
+        `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer { remoteResponse }
         //Act
         val actual = useCase.execute(params = userModel)
         //Assert
