@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.*
 
 internal class RegisterUserWithEmailTest {
@@ -36,31 +37,29 @@ internal class RegisterUserWithEmailTest {
     @DisplayName("should return a [RegisterUserEntity] when register with email use case is called")
     @Test
     fun should_return_RegisterUserEntity() = runBlocking {
-        //Arrange
-        `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer {
-            BaseRemoteResponse.Success(
-                response
-            )
+        testUseCases(BaseRemoteResponse.Success(response)){ actual ->
+            assertEquals(actual.data, response)
         }
-        //Act
-        val actual = useCase.execute(params = userModel)
-        //Assert
-        verify(mockRegisterUserRepository).registerUserWithEmail(userModel)
-        assertEquals(actual.data, response)
     }
 
     @DisplayName("should return a [Failure] when register with email use case is called")
     @Test
     fun should_return_Failure() = runBlocking {
+        testUseCases(BaseRemoteResponse.Error(failure = serverFailure)){ actual ->
+            assertEquals(actual.failure?.message, errorMessage)
+            assertTrue(actual is BaseRemoteResponse.Error)
+        }
+    }
+
+    private fun testUseCases(remoteResponse: BaseRemoteResponse<RegisterUserEntity>, assertions: (BaseRemoteResponse<RegisterUserEntity>) -> Unit) = runBlocking {
         //Arrange
         `when`(mockRegisterUserRepository.registerUserWithEmail(any())).thenAnswer {
-            BaseRemoteResponse.Error<RegisterUserEntity>(failure = serverFailure)
+            remoteResponse
         }
         //Act
         val actual = useCase.execute(params = userModel)
         //Assert
         verify(mockRegisterUserRepository).registerUserWithEmail(userModel)
-        assertEquals(actual.failure?.message, errorMessage)
-        assertTrue(actual is BaseRemoteResponse.Error)
+        assertions(actual)
     }
 }
